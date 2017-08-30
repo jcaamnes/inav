@@ -77,6 +77,8 @@
 
 #include "config/feature.h"
 
+#include "uav_interconnect/uav_interconnect.h"
+
 /* VBAT monitoring interval (in microseconds) - 1s*/
 #define VBATINTERVAL (6 * 3500)
 /* IBat monitoring interval (in microseconds) - 6 default looptimes */
@@ -333,6 +335,9 @@ void fcTasksInit(void)
     setTaskEnabled(TASK_CMS, feature(FEATURE_OSD) || feature(FEATURE_DASHBOARD));
 #endif
 #endif
+#ifdef USE_UAV_INTERCONNECT
+    setTaskEnabled(TASK_UAV_INTERCONNECT, uavInterconnectBusIsInitialized());
+#endif
 }
 
 cfTask_t cfTasks[TASK_COUNT] = {
@@ -523,6 +528,15 @@ cfTask_t cfTasks[TASK_COUNT] = {
         .taskFunc = cmsHandler,
         .desiredPeriod = TASK_PERIOD_HZ(50),
         .staticPriority = TASK_PRIORITY_LOW,
+    },
+#endif
+
+#ifdef USE_UAV_INTERCONNECT
+    [TASK_UAV_INTERCONNECT] = {
+        .taskName = "UIB",
+        .taskFunc = uavInterconnectBusTask,
+        .desiredPeriod = 1000000 / 500,          // 500 Hz
+        .staticPriority = TASK_PRIORITY_MEDIUM,
     },
 #endif
 
